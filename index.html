@@ -615,6 +615,42 @@ details.panel > summary { cursor: pointer; padding: var(--sp-4) var(--sp-5); min
 
 .btn:disabled { opacity: .5; cursor: not-allowed; filter: none; }
 
+/* ── Ports & Protocols tab ── */
+.hint-btn:disabled { filter: grayscale(1); opacity: .45; border-style: dashed; color: var(--text-dim); }
+.q-line { color: var(--text-2); max-width: 60ch; }
+.ans .mono { font-family: var(--font-mono); font-weight: 600; }
+.ans.elim { opacity: .45; text-decoration: line-through; }
+.ans.elim::after { content: 'ruled out'; margin-left: auto; font-size: var(--fs-xs); text-decoration: none; }
+.pgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: var(--sp-2); margin-bottom: var(--sp-4); }
+.pcard {
+  min-height: 76px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--sp-1);
+  padding: var(--sp-2) var(--sp-3); background: var(--surface-1); border: 1px solid var(--line); border-radius: var(--r-md);
+  color: var(--text-bright); font: inherit; cursor: pointer; text-align: center; touch-action: manipulation;
+  transition: background var(--dur-fast) var(--ease-out), border-color var(--dur-fast) var(--ease-out);
+}
+.pcard:hover:not(:disabled) { border-color: var(--line-strong); background: var(--surface-2); }
+.pcard .pk { font-family: var(--font-mono); font-size: var(--fs-2xs); color: var(--text-dim); letter-spacing: .08em; }
+.pcard .pv { font-weight: 700; font-size: var(--fs-md); overflow-wrap: anywhere; }
+.pcard.port .pv { font-family: var(--font-mono); }
+.pcard.down .pv { color: var(--text-dim); }
+.pcard.up { border-color: var(--primary); background: var(--primary-soft); }
+.pcard.matched { border-color: var(--u1); background: var(--u1s); cursor: default; }
+.pcard.matched .pk::before { content: '✓ MATCHED · '; }
+.pcard.peek { outline: 2px dashed var(--primary); outline-offset: 2px; }
+.save-row { display: flex; gap: var(--sp-3); align-items: center; flex-wrap: wrap; margin-bottom: var(--sp-3); }
+.ini {
+  width: 112px; min-height: 44px; padding: 0 var(--sp-3); text-align: center; text-transform: uppercase; letter-spacing: .2em;
+  background: var(--surface-2); border: 1px solid var(--line-strong); border-radius: var(--r-md);
+  color: var(--text-bright); font-family: var(--font-mono); font-size: var(--fs-md);
+}
+.code-line { font-size: var(--fs-sm); color: var(--text-2); margin-bottom: var(--sp-4); display: flex; gap: var(--sp-2); align-items: center; flex-wrap: wrap; }
+.code-line code {
+  font-family: var(--font-mono); font-size: var(--fs-sm); color: var(--text-bright); background: var(--surface-2);
+  border: 1px solid var(--line); border-radius: var(--r-sm); padding: var(--sp-1) var(--sp-2); overflow-wrap: anywhere;
+}
+.rules { list-style: none; display: flex; flex-direction: column; gap: var(--sp-1); margin-top: var(--sp-2); color: var(--text-2); }
+.rules b { color: var(--text-bright); }
+
 </style>
 </head>
 <body class="matrix">
@@ -633,7 +669,7 @@ details.panel > summary { cursor: pointer; padding: var(--sp-4) var(--sp-5); min
     </div>
   </div>
   <div class="topbar-sep"></div>
-  <span class="topbar-tag">DOMAIN 1 · NETWORKING CONCEPTS · OBJ 1.1</span>
+  <span class="topbar-tag">DOMAIN 1 · NETWORKING CONCEPTS · OBJ 1.1 · 1.4</span>
   <div class="theme-switcher" role="group" aria-label="Colour theme">
     <span class="theme-label">THEME</span>
     <button type="button" class="theme-btn active" data-theme="matrix"  aria-pressed="true">Matrix</button>
@@ -648,6 +684,7 @@ details.panel > summary { cursor: pointer; padding: var(--sp-4) var(--sp-5); min
   <button type="button" class="navtab active" onclick="switchTab('build',this)">Build the Stack</button>
   <button type="button" class="navtab" onclick="switchTab('speed',this)">Speed Round</button>
   <button type="button" class="navtab" onclick="switchTab('trouble',this)">Troubleshoot</button>
+  <button type="button" class="navtab" onclick="switchTab('ports',this)">Ports &amp; Protocols</button>
   <button type="button" class="navtab" onclick="switchTab('map',this)">TCP/IP Map</button>
   <button type="button" class="navtab" onclick="switchTab('sheet',this)">Cheat Sheet</button>
 </nav>
@@ -776,6 +813,102 @@ details.panel > summary { cursor: pointer; padding: var(--sp-4) var(--sp-5); min
   </div>
 </main>
 
+<!-- ═════════ PORTS & PROTOCOLS ═════════ -->
+<main id="tab-ports" class="main">
+  <h1 class="sr-only">Ports and Protocols</h1>
+  <p class="intro">Lock in the <b>top 20 Network+ ports</b> and tie each protocol to its <b>OSI layer</b>. Pick a game, beat the clock, and post your score. Watch for the traps: some protocols have no port at all, and the port numbers themselves live at Layer 4.</p>
+
+  <div id="pp-setup">
+    <div class="ctl-row">
+      <div class="ctl-group" role="group" aria-label="Game">
+        <span class="ctl-label">Game</span>
+        <button type="button" class="filter-btn active" data-m="name" aria-pressed="true">Name That Port</button>
+        <button type="button" class="filter-btn" data-m="combo" aria-pressed="false">Port + Layer Combo</button>
+        <button type="button" class="filter-btn" data-m="pairs" aria-pressed="false">Port Pairs</button>
+        <button type="button" class="filter-btn" data-m="stack" aria-pressed="false">Stack the Ports</button>
+      </div>
+    </div>
+    <div class="ctl-row">
+      <div class="ctl-group" role="group" aria-label="Difficulty">
+        <span class="ctl-label">Level</span>
+        <button type="button" class="filter-btn" data-d="1" aria-pressed="false">Foundation · 12 ports</button>
+        <button type="button" class="filter-btn active" data-d="2" aria-pressed="true">Exam · top 20</button>
+        <button type="button" class="filter-btn" data-d="3" aria-pressed="false">Expert · 27 ports</button>
+      </div>
+      <div class="ctl-group" role="group" aria-label="Time limit">
+        <span class="ctl-label">Time</span>
+        <button type="button" class="filter-btn" data-s="60" aria-pressed="false">60 s</button>
+        <button type="button" class="filter-btn" data-s="90" aria-pressed="false">90 s</button>
+        <button type="button" class="filter-btn" data-s="120" aria-pressed="false">120 s</button>
+      </div>
+      <button type="button" class="btn" id="pp-start">Start round</button>
+    </div>
+
+    <div class="panel"><div class="panel-body">
+      <h2 class="panel-title" id="pp-mode-title" style="margin-bottom:var(--sp-2)">Name That Port</h2>
+      <p id="pp-mode-desc"></p>
+      <ul class="rules">
+        <li><b>Countdown:</b> the clock runs down. Correct answers score points, and every 3 perfect cards in a row raise your multiplier (up to ×5).</li>
+        <li><b>Hints:</b> you get <b>3 per round</b>. Each costs 3 seconds and halves that card's points. After the third, the hint button turns gray.</li>
+        <li><b>Leaderboard:</b> post your initials when the round ends. The board lasts until you reload the page.</li>
+      </ul>
+    </div></div>
+
+    <div class="panel" style="margin-top:var(--sp-4)">
+      <div class="panel-hdr"><h2 class="panel-title" id="pp-board-title">Leaderboard</h2><span class="pill" style="color:var(--text-2);border-color:var(--line-strong)">THIS SESSION · TOP 10</span></div>
+      <div class="panel-body" id="pp-board"></div>
+    </div>
+
+    <details class="panel" style="margin-top:var(--sp-4)">
+      <summary>Study first: ports, transport and OSI layer</summary>
+      <div class="panel-body"><div class="tbl-wrap"><table class="cs-table">
+        <thead><tr><th>Port</th><th>Protocol</th><th>Transport (L4)</th><th>OSI layer</th><th>Level</th><th>Memory hook</th></tr></thead>
+        <tbody id="pp-ref"></tbody>
+      </table></div></div>
+    </details>
+  </div>
+
+  <div id="pp-play" hidden>
+    <div class="hud">
+      <div class="stat-card"><div class="stat-val" id="pp-time">60</div><div class="stat-label">Seconds</div></div>
+      <div class="stat-card"><div class="stat-val" id="pp-score">0</div><div class="stat-label">Score</div></div>
+      <div class="stat-card"><div class="stat-val" id="pp-s3">0</div><div class="stat-label" id="pp-s3-label">Streak</div></div>
+      <div class="stat-card"><div class="stat-val" id="pp-hleft">3</div><div class="stat-label">Hints left</div></div>
+    </div>
+    <div class="meter" aria-hidden="true"><div class="meter-fill" id="pp-bar"></div></div>
+
+    <div id="pp-quiz" hidden>
+      <div class="prompt-card">
+        <span class="pill" id="pp-step" style="color:var(--text-2);border-color:var(--line-strong)">STEP</span>
+        <div class="prompt-text" id="pp-item">…</div>
+        <p class="q-line" id="pp-q"></p>
+      </div>
+      <div class="ans-grid" id="pp-ans"></div>
+    </div>
+
+    <div id="pp-pairs" class="pgrid" hidden></div>
+
+    <div id="pp-stack" hidden>
+      <div class="stacker" id="pp-stack-root">
+        <section class="panel">
+          <div class="panel-hdr"><h2 class="panel-title">Cards</h2></div>
+          <div class="panel-body"><div id="pp-pool" class="pool"></div></div>
+        </section>
+        <section class="panel">
+          <div class="panel-hdr"><h2 class="panel-title">The Stack</h2><span class="pill" style="color:var(--text-2);border-color:var(--line-strong)">7 → 1 · TOP TO BOTTOM</span></div>
+          <div class="panel-body"><div id="pp-bins" class="bins"></div></div>
+        </section>
+      </div>
+    </div>
+
+    <div class="ctl-row">
+      <button type="button" class="btn btn-ghost hint-btn" id="pp-hint">Hint (3 left)</button>
+      <button type="button" class="btn btn-ghost" id="pp-quit">Quit round</button>
+    </div>
+    <div id="pp-fb" class="fb" role="status" aria-live="polite"></div>
+  </div>
+</main>
+
 <!-- ═════════ TCP/IP MAP ═════════ -->
 <main id="tab-map" class="main">
   <h1 class="sr-only">TCP/IP Map</h1>
@@ -832,6 +965,18 @@ details.panel > summary { cursor: pointer; padding: var(--sp-4) var(--sp-5); min
     <div class="panel-body">
       <div class="encap" id="encap"></div>
       <p style="margin-top:var(--sp-3);color:var(--text-2)">Sending adds headers on the way down; receiving strips them on the way up (de-encapsulation). Layers 5–7 all call their PDU simply <b style="color:var(--text-bright)">data</b>.</p>
+    </div>
+  </div>
+
+  <div class="full-col panel">
+    <div class="panel-hdr"><h2 class="panel-title">Ports to memorize</h2>
+      <span class="pill" style="color:var(--u1);border-color:var(--u1)">OBJ 1.4</span></div>
+    <div class="panel-body">
+      <p style="margin-bottom:var(--sp-3)">Port numbers are a <b style="color:var(--text-bright)">Layer 4</b> idea (TCP and UDP carry them). The protocols that use them are mostly <b style="color:var(--text-bright)">Layer 7</b>. Protocols marked “none” ride directly on IP and have no port.</p>
+      <div class="tbl-wrap"><table class="cs-table">
+        <thead><tr><th>Port</th><th>Protocol</th><th>Transport (L4)</th><th>OSI layer</th><th>Level</th><th>Memory hook</th></tr></thead>
+        <tbody id="sheet-ports"></tbody>
+      </table></div>
     </div>
   </div>
 
@@ -1131,11 +1276,13 @@ function openResults(o) {
     <h2 id="res-title">${esc(o.title)}</h2>
     <p style="color:var(--text-2);margin-bottom:var(--sp-4)">${o.sub || ''}</p>
     <div class="stat-grid">${o.stats.map(s => `<div class="stat-card"><div class="stat-val">${esc(s[1])}</div><div class="stat-label">${esc(s[0])}</div></div>`).join('')}</div>
+    ${o.extra || ''}
     ${miss ? `<h3 style="font-size:var(--fs-md);color:var(--text-bright);margin-bottom:var(--sp-2)">Review these</h3><ul class="miss">${miss}</ul>` : '<p style="margin-bottom:var(--sp-4)"><b style="color:var(--text-bright)">Nothing to review. Clean run. ✓</b></p>'}
     <div class="btn-row">${o.actions.map((a, i) => `<button type="button" class="btn${a.primary ? '' : ' btn-ghost'}" data-a="${i}">${esc(a.label)}</button>`).join('')}</div>`;
   resultsEl.classList.add('open');
   $$('[data-a]', resCard).forEach(b => b.addEventListener('click', () => { closeResults(); o.actions[+b.dataset.a].fn(); }));
   const first = $('[data-a]', resCard); if (first) first.focus();
+  if (o.onOpen) o.onOpen(resCard);
 }
 function closeResults() {
   resultsEl.classList.remove('open');
@@ -1490,9 +1637,407 @@ const MapGame = {
 };
 
 // ══════════════════════════════════════════
+//  PORTS & PROTOCOLS
+// ══════════════════════════════════════════
+const NOPORT = 'No port number';
+const PP_TIER = ['', 'Foundation', 'Exam', 'Expert'];
+// [name, ports, layer, tier, objective, note / memory hook, ip detail for port-less protocols]
+const PORT_RAW = [
+ // Foundation (12 ports)
+ ['FTP','TCP 20/21',7,1,'1.4','20 carries data, 21 carries commands. File transfer with no encryption.'],
+ ['SSH','TCP 22',7,1,'1.4','Encrypted remote login. Also carries SFTP and SCP. It replaced Telnet.'],
+ ['Telnet','TCP 23',7,1,'1.4','Plain-text remote terminal. Anyone sniffing the wire can read the password.'],
+ ['SMTP','TCP 25',7,1,'1.4','Sends and relays email between mail servers.'],
+ ['DNS','UDP/TCP 53',7,1,'1.4','Turns names into IP addresses. UDP for normal queries, TCP for big answers and zone transfers.'],
+ ['DHCP','UDP 67/68',7,1,'1.4','67 is the server, 68 is the client. Hands out IP settings.'],
+ ['HTTP','TCP 80',7,1,'1.4','Plain-text web traffic.'],
+ ['POP3','TCP 110',7,1,'1.4','Downloads email to the client. The secure version uses 995.'],
+ ['IMAP','TCP 143',7,1,'1.4','Reads email that stays on the server. The secure version uses 993.'],
+ ['HTTPS','TCP 443',7,1,'1.4','HTTP wrapped in TLS. The padlock in the browser.'],
+ ['SMB','TCP 445',7,1,'1.4','Windows file and printer sharing.'],
+ ['RDP','TCP 3389',7,1,'1.4','Remote graphical desktop for Windows.'],
+ ['TCP','',4,1,'1.4','The Transport layer protocol where port numbers live. Reliable, connection-oriented.','Transport protocol. It carries the port numbers'],
+ ['UDP','',4,1,'1.4','The Transport layer protocol for fast, connectionless delivery. It carries port numbers too.','Transport protocol. It carries the port numbers'],
+ ['ICMP','',3,1,'1.4','Ping and error messages. It rides directly in IP packets, so it has no ports.','IP protocol 1'],
+ // Exam (adds 8 ports for the top 20)
+ ['TFTP','UDP 69',7,2,'1.4','Simple file transfer with no login. Used for PXE boot and device configs.'],
+ ['NTP','UDP 123',7,2,'1.4','Keeps clocks in sync. 123 looks like a count: time.'],
+ ['SNMP','UDP 161/162',7,2,'1.4','161 polls devices, 162 receives traps.'],
+ ['LDAP','TCP/UDP 389',7,2,'1.4','Directory lookups, such as Active Directory. The secure version uses 636.'],
+ ['Syslog','UDP 514',7,2,'1.4','Central log collection.'],
+ ['LDAPS','TCP 636',7,2,'1.4','LDAP protected by TLS.'],
+ ['SMTPS','TCP 587',7,2,'1.4','CompTIA lists secure mail submission as 587. Older servers used 465 for implicit TLS.'],
+ ['IMAPS','TCP 993',7,2,'1.4','IMAP protected by TLS.'],
+ ['TLS / SSL','',6,2,'1.4','Encrypts data. The OSI textbook mapping places it at Layer 6, which is the exam answer.','No port of its own. HTTPS puts it on TCP 443'],
+ ['IPsec (ESP)','',3,2,'1.4','Secures traffic at the IP layer. ESP is an IP protocol, not a TCP or UDP port.','IP protocol 50'],
+ ['OSPF','',3,2,'2.1','Link-state routing protocol that runs directly over IP.','IP protocol 89'],
+ // Expert
+ ['POP3S','TCP 995',7,3,'1.4','POP3 protected by TLS.'],
+ ['SQL Server','TCP 1433',7,3,'1.4','Microsoft SQL Server database.'],
+ ['SQLnet (Oracle)','TCP 1521',7,3,'1.4','Oracle database listener.'],
+ ['MySQL','TCP 3306',7,3,'1.4','MySQL and MariaDB databases.'],
+ ['SIP','TCP/UDP 5060/5061',7,3,'1.4','VoIP call setup. 5060 is clear text, 5061 uses TLS.'],
+ ['RPC','TCP 135',5,3,'1.1','Lets one program call code on another host by managing a session. Port 135 is the endpoint mapper.'],
+ ['NetBIOS session','TCP 139',5,3,'1.1','Establishes named sessions between Windows hosts in the classic OSI mapping.'],
+ ['GRE','',3,3,'1.4','Tunneling protocol carried directly over IP.','IP protocol 47'],
+ ['EIGRP','',3,3,'2.1','Advanced distance-vector routing protocol that runs directly over IP.','IP protocol 88']
+];
+const PORTS = PORT_RAW.map((r, i) => ({ id:'p' + i, name:r[0], ports:r[1], layer:r[2], tier:r[3], obj:r[4], note:r[5], ip:r[6] || '', trap:r[2] !== 7, key:r[1] ? parseInt(r[1].match(/\d+/)[0], 10) : 99999 }));
+const ansOf = e => e.ports || NOPORT;
+const describe = e => e.ports ? `${esc(e.name)} uses ${esc(e.ports)}` : `${esc(e.name)} has no port number (${esc(e.ip)})`;
+const layerTag = e => `LAYER ${e.layer} · ${L(e.layer).name.toUpperCase()} · OBJ ${e.obj}`;
+
+function portOptions(e, pool) {
+  const ans = ansOf(e);
+  const strs = Array.from(new Set(pool.map(ansOf))).filter(s => s !== ans);
+  let d = shuffle(strs.filter(s => s !== NOPORT)).slice(0, 3);
+  if (ans !== NOPORT && strs.includes(NOPORT) && Math.random() < 0.35) d[0] = NOPORT;
+  return shuffle([{ t:ans, ok:true }].concat(d.map(t => ({ t, ok:false }))));
+}
+function nameOptions(e, pool) {
+  const others = shuffle(pool.filter(x => x.id !== e.id && x.ports && x.ports !== e.ports));
+  const d = others.slice(0, 3).map(x => x.name);
+  return shuffle([{ t:e.name, ok:true }].concat(d.map(t => ({ t, ok:false }))));
+}
+
+// ── Session leaderboard + score code ─────────────────────────
+function scoreCode(m, d, score, ini, hints) {
+  const base = ['PP', m.toUpperCase(), 'L' + d, ini || '---', String(score).padStart(4, '0'), 'H' + hints];
+  let h = 2166136261; const s = base.join('|') + '|cs-ports';
+  for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619) >>> 0; }
+  return base.join('-') + '-' + h.toString(36).toUpperCase().slice(-4).padStart(4, '0');
+}
+const Board = {
+  ini:'', data:{ name:[], combo:[], pairs:[], stack:[] },
+  add(m, e) {
+    const a = this.data[m]; a.push(e);
+    a.sort((x, y) => y.score - x.score || x.hints - y.hints);
+    this.data[m] = a.slice(0, 10);
+    return this.data[m].indexOf(e) + 1;
+  },
+  render(m) {
+    const a = this.data[m], label = PP.MODES[m].label;
+    $('#pp-board-title').textContent = 'Leaderboard · ' + label;
+    $('#pp-board').innerHTML = a.length
+      ? `<div class="tbl-wrap"><table class="cs-table"><thead><tr><th>#</th><th>Initials</th><th>Score</th><th>Level</th><th>Hints used</th></tr></thead><tbody>${
+          a.map((e, i) => `<tr><td><b>${i + 1}</b></td><td><b>${esc(e.ini)}</b></td><td>${e.score}</td><td>${PP_TIER[e.d]}</td><td>${e.hints}/3</td></tr>`).join('')}</tbody></table></div>`
+      : '<p>No scores yet. Finish a round and be the first on the board.</p>';
+  }
+};
+
+function buildPortTable(tb) {
+  const rows = PORTS.slice().sort((a, b) => a.key - b.key || a.name.localeCompare(b.name));
+  tb.innerHTML = rows.map(e => `<tr>
+    <td><b style="font-family:var(--font-mono)">${e.ports ? esc(e.ports.replace(/^[A-Z/]+ /, '')) : 'none'}</b></td>
+    <td><b>${esc(e.name)}</b></td>
+    <td>${e.ports ? esc(e.ports.match(/^[A-Z/]+/)[0]) : esc(e.ip)}</td>
+    <td><b style="color:var(${L(e.layer).hue})">${e.layer}</b> ${esc(L(e.layer).name)}</td>
+    <td>${PP_TIER[e.tier]}</td>
+    <td>${esc(e.note)}</td></tr>`).join('');
+}
+
+const PP = {
+  cfg:{ m:'name', d:2, s:60 }, r:null, timer:null, waitT:null, peekT:null, P:null, MAXH:3,
+  MODES:{
+    name:{ label:'Name That Port', t:60, desc:'One card at a time. Pick the port number for the protocol, or on some cards the protocol for a port. Protocols that run straight on IP (ICMP, ESP, OSPF) or are only a layer idea (TLS) have no port, so the right answer is “No port number”. 10 points per card.' },
+    combo:{ label:'Port + Layer Combo', t:90, desc:'Every card asks two things: the port first, then the OSI layer. Each answer is worth 10 points, but only cards you get fully right build your multiplier. This is the game that ties ports to layers.' },
+    pairs:{ label:'Port Pairs', t:90, desc:'Flip two cards at a time and match each protocol with its port number. 20 points per pair with a streak multiplier, and 2 bonus points for every second left if you clear the board.' },
+    stack:{ label:'Stack the Ports', t:120, desc:'Drop each protocol card onto its OSI layer before time runs out. The port is printed on every card. Most land on Layer 7, so watch for the traps: TCP and UDP at Layer 4, ICMP at Layer 3, RPC at Layer 5. Clear the stack early for 2 bonus points per second left.' }
+  },
+  init() {
+    const setup = $('#pp-setup');
+    bindToggle(setup, 'data-m', v => { this.cfg.m = v; this.cfg.s = this.MODES[v].t; setToggleGroup(setup, 'data-s', this.cfg.s); this.desc(); });
+    bindToggle(setup, 'data-d', v => { this.cfg.d = +v; });
+    bindToggle(setup, 'data-s', v => { this.cfg.s = +v; });
+    setToggleGroup(setup, 'data-s', this.cfg.s);
+    $('#pp-start').addEventListener('click', () => this.start());
+    $('#pp-hint').addEventListener('click', () => this.hint());
+    $('#pp-quit').addEventListener('click', () => this.stop());
+    $('#pp-ans').addEventListener('click', e => {
+      const b = e.target.closest('.ans'); if (!b || b.disabled || !this.r) return;
+      if (this.r.step === 'port') this.answerPort(+b.dataset.i); else if (this.r.step === 'layer') this.answerLayer(+b.dataset.n);
+    });
+    $('#pp-pairs').addEventListener('click', e => { const c = e.target.closest('.pcard'); if (c) this.flip(c.dataset.id); });
+    buildPortTable($('#pp-ref'));
+    this.desc();
+  },
+  desc() { $('#pp-mode-title').textContent = this.MODES[this.cfg.m].label; $('#pp-mode-desc').textContent = this.MODES[this.cfg.m].desc; Board.render(this.cfg.m); },
+  active() { return !!(this.r && !this.r.over); },
+  say(html, kind) { const f = $('#pp-fb'); f.className = 'fb' + (kind === 'ok' ? ' ok' : kind === 'bad' ? ' bad' : ''); f.innerHTML = html; },
+  mult() { return Math.min(5, 1 + Math.floor(this.r.streak / 3)); },
+
+  start() {
+    this.stop();
+    const { m, d, s } = this.cfg, pool = PORTS.filter(e => e.tier <= d);
+    this.r = { m, d, left:s, total:s, score:0, streak:0, best:0, okCards:0, badCards:0, missed:[], hints:0, over:false, last:Date.now(), step:null, lock:false, wait:false, pool, queue:shuffle(pool), mismatches:0 };
+    this.P = null; this.stackN = 0;
+    $('#pp-setup').hidden = true; $('#pp-play').hidden = false;
+    $('#pp-quiz').hidden = !(m === 'name' || m === 'combo'); $('#pp-pairs').hidden = m !== 'pairs'; $('#pp-stack').hidden = m !== 'stack';
+    this.hud();
+    if (m === 'pairs') this.startPairs(); else if (m === 'stack') this.startStack(); else this.nextCard();
+    this.timer = setInterval(() => this.tick(), 100);
+  },
+  hud() {
+    const r = this.r; if (!r) return;
+    $('#pp-time').textContent = Math.ceil(Math.max(0, r.left)); $('#pp-score').textContent = r.score;
+    if (r.m === 'stack') { $('#pp-s3').textContent = (this.P ? Object.keys(this.P.state.done).length : 0) + '/' + (this.stackN || 0); $('#pp-s3-label').textContent = 'Placed'; }
+    else { $('#pp-s3').textContent = r.streak; $('#pp-s3-label').textContent = 'Streak · ×' + this.mult(); }
+    const left = Math.max(0, this.MAXH - r.hints);
+    $('#pp-hleft').textContent = left;
+    const hb = $('#pp-hint'); hb.disabled = left <= 0; hb.textContent = left > 0 ? 'Hint (' + left + ' left)' : 'No hints left';
+    $('#pp-bar').style.transform = 'scaleX(' + Math.max(0, r.left / r.total) + ')';
+  },
+  tick() {
+    const r = this.r; if (!r || r.over) return;
+    const now = Date.now(), dt = Math.min(0.5, (now - r.last) / 1000); r.last = now;
+    if (!document.hidden) r.left -= dt;
+    this.hud(); if (r.left <= 0) this.timeUp();
+  },
+  penalty(sec) { const r = this.r; r.left = Math.max(0, r.left - sec); this.hud(); if (r.left <= 0) this.timeUp(); },
+  stop() {
+    clearInterval(this.timer); clearTimeout(this.waitT); clearTimeout(this.peekT); this.timer = null;
+    if (this.r) this.r.over = true;
+    $('#pp-play').hidden = true; $('#pp-setup').hidden = false;
+  },
+  timeUp() {
+    const r = this.r; if (!r || r.over) return;
+    if (r.m === 'stack') {
+      const S = this.P.state; S.finished = true; r.score = S.score;
+      const miss = this.stackItems.filter(i => !S.done[i.id] || S.wrong[i.id]).map(i => ({ text:i.text, layer:i.layer, note:i.note, port:i.port }));
+      this.finish({ title:'Time!', sub:'Stack the Ports · ' + PP_TIER[r.d], acc:Math.round(100 * (this.stackN - miss.length) / this.stackN), third:['Mistakes', S.mistakes], missed:miss });
+    } else if (r.m === 'pairs') {
+      this.finish({ title:'Time!', sub:'Port Pairs · ' + PP_TIER[r.d] + ' · ' + Object.keys(r.matched).length + '/' + r.entries.length + ' pairs found', acc:this.pairAcc(), third:['Best streak', r.best], missed:this.pairMissed() });
+    } else {
+      this.finish({ title:'Time!', sub:this.MODES[r.m].label + ' · ' + PP_TIER[r.d], acc:this.quizAcc(), third:['Best streak', r.best], missed:r.missed });
+    }
+  },
+
+  // ── hints (max 3 per round, then the button grays out) ──
+  hint() {
+    const r = this.r; if (!r || r.over) return;
+    if (r.hints >= this.MAXH) { this.say('No hints left this round.', 'bad'); return; }
+    if (r.m === 'stack') {
+      const before = this.P.state.hints; this.P.hint();
+      if (this.P.state.hints > before) { r.hints = this.P.state.hints; this.penalty(3); }
+      this.hud(); return;
+    }
+    if (r.m === 'pairs') {
+      if (r.lock) { this.say('Wait for the cards to flip back, then ask for a hint.', 'info'); return; }
+      const un = r.entries.filter(e => !r.matched[e.id]); if (!un.length) return;
+      const e = un[Math.floor(Math.random() * un.length)];
+      r.hints++; r.peek = [e.id + 'n', e.id + 'p']; r.lock = true; this.updatePairs();
+      this.say(`<b>Hint:</b> look at the outlined cards. <b>${esc(e.name)}</b> pairs with <b>${esc(e.ports)}</b>.`, 'info');
+      this.peekT = setTimeout(() => { if (r.over) return; r.peek = []; r.lock = false; this.updatePairs(); }, 1800);
+      this.penalty(3); return;
+    }
+    if (r.lock || !r.cur) return;
+    if (r.hintStep === r.step) { this.say('You already used a hint on this step.', 'info'); return; }
+    r.hints++; r.hinted = true; r.hintStep = r.step;
+    if (r.step === 'port') {
+      shuffle(r.opts.map((o, i) => i).filter(i => !r.opts[i].ok)).slice(0, 2).forEach(i => { r.opts[i].elim = true; const b = $('#pp-ans [data-i="' + i + '"]'); if (b) { b.classList.add('elim'); b.disabled = true; } });
+      this.say('<b>Hint:</b> two wrong answers are ruled out. This card is worth half points.', 'info');
+    } else {
+      shuffle(LAYERS.filter(l => l.n !== r.cur.layer)).slice(0, 4).forEach(l => { const b = $('#pp-ans [data-n="' + l.n + '"]'); if (b) { b.classList.add('elim'); b.disabled = true; } });
+      this.say('<b>Hint:</b> four wrong layers are ruled out. This card is worth half points.', 'info');
+    }
+    this.penalty(3);
+  },
+
+  // ── Name That Port + Port/Layer Combo ──
+  nextCard() {
+    const r = this.r; if (!r || r.over) return;
+    clearTimeout(this.waitT); r.wait = false; r.lock = false;
+    if (!r.queue.length) r.queue = shuffle(r.pool);
+    const e = r.queue.shift();
+    r.cur = e; r.dir = (r.m === 'name' && e.ports && Math.random() < 0.35) ? 'rev' : 'fwd';
+    r.pts = 0; r.cardBad = false; r.hinted = false; r.hintStep = null; r.mult = this.mult(); r.portMsg = '';
+    this.portStep(); this.hud();
+  },
+  portStep() {
+    const r = this.r, e = r.cur;
+    r.step = 'port'; r.lock = false;
+    r.opts = r.dir === 'rev' ? nameOptions(e, r.pool) : portOptions(e, r.pool);
+    $('#pp-item').textContent = r.dir === 'rev' ? e.ports : e.name;
+    $('#pp-step').textContent = (r.m === 'combo' ? 'STEP 1 OF 2 · ' : '') + (r.dir === 'rev' ? 'NAME THE PROTOCOL' : 'FIND THE PORT');
+    $('#pp-q').textContent = r.dir === 'rev' ? 'Which protocol uses this port?' : 'Which port number does it use? Some protocols have none.';
+    $('#pp-ans').innerHTML = r.opts.map((o, i) =>
+      `<button type="button" class="ans" data-i="${i}" style="--h:var(--primary)"><span class="ans-n">${i + 1}</span><span class="${r.dir === 'rev' ? '' : 'mono'}">${esc(o.t)}</span></button>`).join('');
+    this.say('Pick an answer. Keys <span class="kbd">1</span>–<span class="kbd">4</span>. <span class="kbd">H</span> = hint.', 'info');
+  },
+  answerPort(i) {
+    const r = this.r; if (!r || r.over || r.lock || r.step !== 'port') return;
+    const o = r.opts[i]; if (!o || o.elim) return;
+    r.lock = true; const e = r.cur, ok = o.ok, base = r.hinted ? 5 : 10;
+    $$('#pp-ans .ans').forEach(b => { b.disabled = true; const k = +b.dataset.i; if (r.opts[k].ok) b.classList.add('correct'); else if (k === i) b.classList.add('wrong'); });
+    if (ok) r.pts += base * r.mult; else r.cardBad = true;
+    if (r.m === 'combo') {
+      r.portMsg = `<b>${ok ? '✓' : '✕'} ${describe(e)}.</b>`;
+      this.say(r.portMsg, ok ? 'ok' : 'bad');
+      this.waitT = setTimeout(() => this.layerStep(), ok ? 500 : 1400);
+    } else this.finishCard();
+  },
+  layerStep() {
+    const r = this.r; if (!r || r.over) return;
+    r.step = 'layer'; r.lock = false;
+    $('#pp-step').textContent = 'STEP 2 OF 2 · OSI LAYER';
+    $('#pp-q').textContent = 'Which OSI layer does it belong to?';
+    layerButtons($('#pp-ans'), r.d === 1);
+    this.say(r.portMsg + ' Now pick the layer. Keys <span class="kbd">1</span>–<span class="kbd">7</span>.', 'info');
+  },
+  answerLayer(n) {
+    const r = this.r; if (!r || r.over || r.lock || r.step !== 'layer') return;
+    r.lock = true; const e = r.cur, ok = n === e.layer, base = r.hinted ? 5 : 10;
+    $$('#pp-ans .ans').forEach(b => { b.disabled = true; if (+b.dataset.n === e.layer) b.classList.add('correct'); else if (+b.dataset.n === n) b.classList.add('wrong'); });
+    if (ok) r.pts += base * r.mult; else r.cardBad = true;
+    this.finishCard();
+  },
+  finishCard() {
+    const r = this.r, e = r.cur, full = !r.cardBad;
+    r.lock = true; r.step = 'done';
+    if (full) { r.okCards++; if (!r.hinted) { r.streak++; r.best = Math.max(r.best, r.streak); } }
+    else {
+      r.streak = 0; r.badCards++;
+      if (!r.missed.some(m => m.id === e.id)) r.missed.push({ id:e.id, text:e.name, layer:e.layer, note:e.note, port:e.ports || NOPORT });
+      r.queue.splice(Math.min(r.queue.length, 4), 0, e);
+    }
+    r.score += r.pts;
+    this.say(`<b>${full ? '✓' : '✕'} ${describe(e)} · Layer ${e.layer} ${esc(L(e.layer).name)}.</b> +${r.pts}${r.mult > 1 ? ' (×' + r.mult + ')' : ''} ${esc(e.note)} <span class="meta">${layerTag(e)}</span>${full ? '' : ' <span class="meta">Enter = next</span>'}`, full ? 'ok' : 'bad');
+    r.wait = !full; this.hud();
+    this.waitT = setTimeout(() => this.nextCard(), full ? 750 : 2800);
+  },
+  quizAcc() { const r = this.r, t = r.okCards + r.badCards; return t ? Math.round(100 * r.okCards / t) : 0; },
+  skipWait() { if (this.r && this.r.wait && !this.r.over && this.r.m !== 'pairs') this.nextCard(); },
+  key(n) {
+    const r = this.r; if (!r || r.over || r.lock) return;
+    if (r.m === 'stack') { if (n <= 7) this.P.attempt('L' + n); return; }
+    if (r.m === 'pairs') return;
+    if (r.step === 'port' && n <= r.opts.length) this.answerPort(n - 1);
+    else if (r.step === 'layer' && n <= 7) this.answerLayer(n);
+  },
+
+  // ── Port Pairs ──
+  startPairs() {
+    const r = this.r, n = { 1:6, 2:8, 3:10 }[r.d], seen = {};
+    r.entries = shuffle(r.pool.filter(e => e.ports)).filter(e => !seen[e.ports] && (seen[e.ports] = 1)).slice(0, n);
+    r.cards = shuffle(r.entries.reduce((a, e) => a.concat([{ id:e.id + 'n', pair:e.id, kind:'name', text:e.name }, { id:e.id + 'p', pair:e.id, kind:'port', text:e.ports }]), []));
+    r.open = []; r.matched = {}; r.peek = []; r.hot = {};
+    $('#pp-pairs').innerHTML = r.cards.map((c, i) => `<button type="button" class="pcard down ${c.kind}" data-id="${c.id}" data-pos="${i + 1}"></button>`).join('');
+    this.updatePairs();
+    this.say('Flip two cards. Match each protocol with its port number. <span class="kbd">H</span> = hint.', 'info');
+  },
+  updatePairs() {
+    const r = this.r; if (!r || !r.cards) return;
+    $$('#pp-pairs .pcard').forEach(b => {
+      const c = r.cards.find(x => x.id === b.dataset.id);
+      const matched = !!r.matched[c.pair], up = matched || r.open.includes(c.id) || r.peek.includes(c.id);
+      b.className = 'pcard ' + c.kind + ' ' + (matched ? 'matched' : up ? 'up' : 'down') + (r.peek.includes(c.id) && !matched ? ' peek' : '');
+      b.disabled = matched;
+      b.innerHTML = up ? `<span class="pk">${c.kind === 'name' ? 'PROTOCOL' : 'PORT'}</span><span class="pv">${esc(c.text)}</span>` : `<span class="pk">CARD ${b.dataset.pos}</span><span class="pv">?</span>`;
+      b.setAttribute('aria-label', up ? (c.kind === 'name' ? 'Protocol ' : 'Port ') + c.text + (matched ? ', matched' : '') : 'Card ' + b.dataset.pos + ', face down');
+    });
+  },
+  flip(id) {
+    const r = this.r; if (!r || r.over || r.m !== 'pairs' || r.lock) return;
+    const c = r.cards.find(x => x.id === id); if (!c || r.matched[c.pair] || r.open.includes(id)) return;
+    r.open.push(id); this.updatePairs();
+    if (r.open.length < 2) { this.say('Now flip a second card.', 'info'); return; }
+    const a = r.cards.find(x => x.id === r.open[0]), b = c;
+    if (a.pair === b.pair) {
+      const e = r.entries.find(x => x.id === a.pair), mult = this.mult(), pts = 20 * mult;
+      r.matched[a.pair] = true; r.open = []; r.streak++; r.best = Math.max(r.best, r.streak); r.score += pts;
+      this.say(`<b>✓ ${esc(e.name)} = ${esc(e.ports)}</b> +${pts}${mult > 1 ? ' (×' + mult + ')' : ''}. ${esc(e.note)} <span class="meta">${layerTag(e)}</span>`, 'ok');
+      this.updatePairs(); this.hud();
+      if (Object.keys(r.matched).length === r.entries.length) {
+        const bonus = Math.floor(r.left) * 2; r.score += bonus;
+        this.finish({ title:'Board cleared!', sub:'Port Pairs · ' + PP_TIER[r.d] + ' · time bonus +' + bonus, acc:this.pairAcc(), third:['Best streak', r.best], missed:this.pairMissed() });
+      }
+    } else {
+      r.streak = 0; r.mismatches++; r.hot[a.pair] = 1; r.hot[b.pair] = 1; r.lock = true;
+      this.say(`<b>✕ No match:</b> ${esc(a.text)} and ${esc(b.text)} do not go together. Remember where they are.`, 'bad'); this.hud();
+      this.waitT = setTimeout(() => { if (r.over) return; r.open = []; r.lock = false; this.updatePairs(); }, 1100);
+    }
+  },
+  pairAcc() { const r = this.r, f = Object.keys(r.matched).length, t = f + r.mismatches; return t ? Math.round(100 * f / t) : 0; },
+  pairMissed() { const r = this.r; return r.entries.filter(e => r.hot[e.id]).map(e => ({ text:e.name, layer:e.layer, note:e.note, port:e.ports })); },
+
+  // ── Stack the Ports (reuses the Placer) ──
+  startStack() {
+    const r = this.r, n = { 1:10, 2:12, 3:14 }[r.d];
+    const traps = shuffle(r.pool.filter(e => e.trap)).slice(0, Math.ceil(n * 0.4));
+    const rest = shuffle(r.pool.filter(e => !e.trap)).slice(0, n - traps.length);
+    const items = shuffle(traps.concat(rest)).map(e => ({ id:e.id, text:e.name + ' · ' + (e.ports || 'no port'), layer:e.layer, type:'p', bin:'L' + e.layer, note:e.note + (e.ip ? ' (' + e.ip + ')' : ''), port:e.ports, obj:e.obj }));
+    this.stackItems = items; this.stackN = items.length;
+    const bins = LAYERS.map(l => ({ id:'L' + l.n, num:String(l.n), name:l.name, sub:r.d === 1 ? l.fn : '', hue:l.hue, aria:'Place on Layer ' + l.n + ', ' + l.name }));
+    const root = freshRoot('pp-stack-root'), self = this;
+    this.P = Placer({
+      root, poolEl:$('#pp-pool', root), binsEl:$('#pp-bins', root), fbEl:$('#pp-fb'), items, bins,
+      maxWrong:3, maxHints:this.MAXH,
+      startMsg:'Select a card, then pick its layer (or press 1–7). Ports are printed on each card. <span class="kbd">H</span> = hint.',
+      pickMsg:'now tap a layer, drag it onto one, or press <span class="kbd">1</span>–<span class="kbd">7</span>.',
+      hintOf: it => `this one belongs in the ${groupOf(it.layer)}.`,
+      right: (it, b, w, pts) => `<b>✓ ${esc(it.text)} → Layer ${it.layer} ${esc(L(it.layer).name)}</b> (+${pts}). ${esc(it.note)} <span class="meta">OBJ ${it.obj}</span>`,
+      wrong: (it, b, w) => {
+        const ch = L(+b.num), ok = L(it.layer), dir = ch.n > ok.n ? 'Look lower in the stack.' : 'Look higher in the stack.';
+        if (w === 1) return { msg:`<b>✕ Not Layer ${ch.n}.</b> The ${esc(ch.name)} layer ${esc(ch.role)}. ${dir}` };
+        if (w === 2) return { msg:`<b>✕ Still not Layer ${ch.n}.</b> Clue: ${esc(it.note)}`, reveal:false };
+        return { msg:`<b>It belongs at Layer ${ok.n} (${esc(ok.name)}).</b> ${esc(it.note)} Placed for you.` };
+      },
+      onChange: S => { if (self.r && !self.r.over) { self.r.score = S.score; self.r.hints = S.hints; self.hud(); } },
+      onDone: sum => {
+        const rr = self.r; if (!rr || rr.over) return;
+        const bonus = Math.floor(rr.left) * 2; rr.score = sum.score + bonus;
+        self.finish({ title:sum.perfect ? 'Perfect stack! +200 bonus' : 'Stack complete', sub:'Stack the Ports · ' + PP_TIER[rr.d] + ' · time bonus +' + bonus,
+          acc:Math.round(100 * (sum.total - sum.missed.length) / sum.total), third:['Mistakes', sum.mistakes], missed:sum.missed });
+      }
+    });
+  },
+
+  // ── end of round: results + initials + score code ──
+  finish(o) {
+    const r = this.r; if (!r) return;
+    r.over = true; clearInterval(this.timer); clearTimeout(this.waitT); clearTimeout(this.peekT); this.timer = null;
+    $('#pp-play').hidden = true; $('#pp-setup').hidden = false;
+    const m = r.m, d = r.d, score = r.score, hints = r.hints, label = this.MODES[m].label;
+    const extra = `<div class="save-row"><label class="ctl-label" for="pp-ini">Initials</label>
+        <input id="pp-ini" class="ini" maxlength="3" autocomplete="off" spellcheck="false" value="${esc(Board.ini)}" placeholder="ABC">
+        <button type="button" class="btn" id="pp-save"${score > 0 ? '' : ' disabled'}>Post to leaderboard</button>
+        <span id="pp-savemsg" role="status" style="color:var(--text-2)">${score > 0 ? '' : 'Score some points to post to the board.'}</span></div>
+      <p class="code-line">Score code <code id="pp-code"></code><button type="button" class="btn btn-ghost" id="pp-copy">Copy</button></p>`;
+    openResults({
+      title:o.title, sub:o.sub,
+      stats:[['Score', score], ['Accuracy', o.acc + '%'], o.third, ['Hints used', hints + '/' + this.MAXH]],
+      missed:o.missed, extra,
+      onOpen: card => {
+        const ini = $('#pp-ini', card), code = $('#pp-code', card), save = $('#pp-save', card), msg = $('#pp-savemsg', card), copy = $('#pp-copy', card);
+        let saved = false;
+        const upd = () => { ini.value = ini.value.toUpperCase().replace(/[^A-Z0-9]/g, ''); code.textContent = scoreCode(m, d, score, ini.value, hints); };
+        ini.addEventListener('input', upd); upd();
+        ini.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); save.click(); } });
+        save.addEventListener('click', () => {
+          if (saved || score <= 0) return;
+          const v = ini.value || '---'; Board.ini = ini.value;
+          const rank = Board.add(m, { ini:v, score, d, hints });
+          saved = true; save.disabled = true; ini.disabled = true;
+          msg.textContent = rank ? 'Posted. You are #' + rank + ' on the ' + label + ' board.' : 'Posted, but it did not make the top 10.';
+          if (this.cfg.m === m) Board.render(m);
+        });
+        copy.addEventListener('click', () => {
+          const t = code.textContent, ok = () => { copy.textContent = 'Copied'; setTimeout(() => { copy.textContent = 'Copy'; }, 1500); };
+          try { navigator.clipboard.writeText(t).then(ok, () => { const rg = document.createRange(); rg.selectNodeContents(code); const s = window.getSelection(); s.removeAllRanges(); s.addRange(rg); copy.textContent = 'Press Ctrl+C'; }); }
+          catch (e) { const rg = document.createRange(); rg.selectNodeContents(code); const s = window.getSelection(); s.removeAllRanges(); s.addRange(rg); copy.textContent = 'Press Ctrl+C'; }
+        });
+        ini.focus();
+      },
+      actions:[{ label:'Play again', primary:true, fn:() => this.start() }, { label:'Close', fn:() => {} }]
+    });
+  }
+};
+
+// ══════════════════════════════════════════
 //  CHEAT SHEET
 // ══════════════════════════════════════════
 function buildSheet() {
+  buildPortTable($('#sheet-ports'));
   $('#sheet-table tbody').innerHTML = LAYERS.map(l => `<tr>
     <td><b style="color:var(${l.hue})">${l.n}</b></td><td><b>${esc(l.name)}</b></td><td>${esc(l.pdu)}</td><td>${esc(l.addr)}</td>
     <td>${esc(l.key)}</td><td>${esc(l.ex)}</td><td>${esc(l.dev)}</td></tr>`).join('');
@@ -1511,6 +2056,7 @@ function buildSheet() {
 const _sw = window.switchTab;
 window.switchTab = function (name, btn) {
   if (name !== 'speed') Speed.stop();
+  if (name !== 'ports') PP.stop();
   _sw(name, btn);
   $$('.navtab').forEach(b => { if (b === btn) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current'); });
 };
@@ -1524,12 +2070,15 @@ document.addEventListener('keydown', e => {
     if (tab === 'build' && Build.P) Build.P.attempt('L' + n);
     else if (tab === 'speed' && Speed.active()) Speed.answer(n);
     else if (tab === 'trouble' && Trouble.run && !$('#tr-play').hidden) Trouble.answer(n);
+    else if (tab === 'ports' && PP.active()) PP.key(n);
   } else if (e.key === 'Enter' && tab === 'speed' && Speed.active() && Speed.r.wait) { e.preventDefault(); Speed.skipWait(); }
+  else if (tab === 'ports' && PP.active() && e.key === 'Enter' && PP.r.wait) { e.preventDefault(); PP.skipWait(); }
+  else if (tab === 'ports' && PP.active() && (e.key === 'h' || e.key === 'H')) { PP.hint(); }
 });
 document.addEventListener('visibilitychange', () => { if (Speed.r) Speed.r.last = Date.now(); });
 
-buildSheet(); Build.init(); Speed.init(); Trouble.init(); MapGame.init();
-window.__osi = { ITEMS, SCEN, LAYERS, TCPIP, Build, Speed, Trouble, MapGame };
+buildSheet(); Build.init(); Speed.init(); Trouble.init(); PP.init(); MapGame.init();
+window.__osi = { ITEMS, SCEN, LAYERS, TCPIP, Build, Speed, Trouble, MapGame, PP, PORTS, Board };
 })();
 
 </script>
